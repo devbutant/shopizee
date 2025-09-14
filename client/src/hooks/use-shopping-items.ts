@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ShoppingItemService, ShoppingItem } from '../services/shopping-item.service';
+import { getAllItems, togglePurchased, deleteItem, updateItem, ShoppingItem, UpdateShoppingItem } from '../services/shopping-item.service';
 
 export const useShoppingItems = () => {
   const [items, setItems] = useState<ShoppingItem[]>([]);
@@ -10,7 +10,7 @@ export const useShoppingItems = () => {
     try {
       setLoading(true);
       setError(null);
-      const fetchedItems = await ShoppingItemService.getAllItems(purchased);
+      const fetchedItems = await getAllItems(purchased);
       setItems(fetchedItems);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load items');
@@ -19,16 +19,43 @@ export const useShoppingItems = () => {
     }
   };
 
-  const togglePurchased = async (id: number) => {
+  const togglePurchasedItem = async (id: number) => {
     try {
       setError(null);
-      const updatedItem = await ShoppingItemService.togglePurchased(id);
+      const updatedItem = await togglePurchased(id);
       setItems(prevItems => 
         prevItems.map(item => item.id === id ? updatedItem : item)
       );
       return updatedItem;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to toggle purchased status';
+      setError(errorMessage);
+      throw err;
+    }
+  };
+
+  const deleteItemById = async (id: number) => {
+    try {
+      setError(null);
+      await deleteItem(id);
+      setItems(prevItems => prevItems.filter(item => item.id !== id));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete item';
+      setError(errorMessage);
+      throw err;
+    }
+  };
+
+  const updateItemById = async (id: number, updates: UpdateShoppingItem) => {
+    try {
+      setError(null);
+      const updatedItem = await updateItem(id, updates);
+      setItems(prevItems => 
+        prevItems.map(item => item.id === id ? updatedItem : item)
+      );
+      return updatedItem;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update item';
       setError(errorMessage);
       throw err;
     }
@@ -43,6 +70,8 @@ export const useShoppingItems = () => {
     loading,
     error,
     loadItems,
-    togglePurchased
+    togglePurchased: togglePurchasedItem,
+    deleteItem: deleteItemById,
+    updateItem: updateItemById
   };
 };

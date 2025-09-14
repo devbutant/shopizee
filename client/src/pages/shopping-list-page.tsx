@@ -1,20 +1,25 @@
-import { useShoppingItems } from '../hooks/use-shopping-items';
+import { useShoppingItems, useEditModal } from '../hooks';
+import { useItemActions } from '../hooks/use-item-actions';
+import { useItemFiltering } from '../hooks/use-item-filtering';
 import { LoadingState } from '../components/loading-state';
 import { ErrorState } from '../components/error-state';
 import { EmptyState } from '../components/empty-state';
 import { ShoppingListHeader } from '../components/shopping-list-header';
 import { ShoppingItemCard } from '../components/shopping-item-card';
+import { EditItemModal } from '../components/edit-item-modal';
 
 export const ShoppingListPage = () => {
-  const { items, loading, error, togglePurchased } = useShoppingItems();
-
-  const handleTogglePurchased = async (id: number) => {
-    try {
-      await togglePurchased(id);
-    } catch (err) {
-      console.error('Failed to toggle purchased status:', err);
-    }
-  };
+  const { items, loading, error, togglePurchased, deleteItem, updateItem } = useShoppingItems();
+  
+  const { purchasedItems, remainingItems } = useItemFiltering(items);
+  
+  const { editingItem, isOpen: isEditModalOpen, openModal, closeModal, handleSave } = useEditModal(updateItem);
+  
+  const { handleTogglePurchased, handleDelete, handleEdit } = useItemActions({
+    onTogglePurchased: togglePurchased,
+    onDeleteItem: deleteItem,
+    onEditItem: openModal
+  });
 
   if (loading) {
     return <LoadingState />;
@@ -23,9 +28,6 @@ export const ShoppingListPage = () => {
   if (error) {
     return <ErrorState error={error} />;
   }
-
-  const purchasedItems = items.filter(item => item.purchased);
-  const remainingItems = items.filter(item => !item.purchased);
 
   return (
     <div className="h-screen bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
@@ -47,6 +49,8 @@ export const ShoppingListPage = () => {
                   key={item.id}
                   item={item}
                   onTogglePurchased={handleTogglePurchased}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
                 />
               ))}
             </div>
@@ -61,6 +65,8 @@ export const ShoppingListPage = () => {
                   key={item.id}
                   item={item}
                   onTogglePurchased={handleTogglePurchased}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
                 />
               ))}
             </div>
@@ -76,6 +82,14 @@ export const ShoppingListPage = () => {
 
       {/* Subtle gradient overlay at bottom */}
       <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-slate-50 to-transparent pointer-events-none"></div>
+
+      {/* Edit Modal */}
+      <EditItemModal
+        item={editingItem}
+        isOpen={isEditModalOpen}
+        onClose={closeModal}
+        onSave={handleSave}
+      />
     </div>
   );
 };

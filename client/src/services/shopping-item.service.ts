@@ -1,7 +1,6 @@
-/**
- * Service responsible for shopping items API calls
- */
+import { apiClient } from './api-client';
 
+// Types
 export interface ShoppingItem {
   id: number;
   name: string;
@@ -26,54 +25,55 @@ export interface UpdateShoppingItem {
   purchased?: boolean;
 }
 
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-  count?: number;
-}
+// Configuration des endpoints
+const ENDPOINTS = {
+  SHOPPING: '/shopping',
+  TOGGLE: (id: number) => `/shopping/${id}/toggle`,
+  ITEM: (id: number) => `/shopping/${id}`,
+} as const;
 
-export class ShoppingItemService {
-  private static readonly BASE_URL = (import.meta as any).env.VITE_API_BASE_URL;
-
-  static async getAllItems(purchased?: boolean): Promise<ShoppingItem[]> {
-    try {
-      const url = new URL(`${this.BASE_URL}/shopping`);
-      if (purchased !== undefined) {
-        url.searchParams.append('purchased', purchased.toString());
-      }
-
-      const response = await fetch(url.toString());
-      const result: ApiResponse<ShoppingItem[]> = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Failed to fetch shopping items');
-      }
-
-      return result.data || [];
-    } catch (error) {
-      console.error('Error fetching shopping items:', error);
-      throw error;
-    }
+// API Functions - Approche fonctionnelle pure
+export const getAllItems = async (purchased?: boolean): Promise<ShoppingItem[]> => {
+  try {
+    const params = purchased !== undefined ? { purchased: purchased.toString() } : undefined;
+    return await apiClient.get<ShoppingItem[]>(ENDPOINTS.SHOPPING, params);
+  } catch (error) {
+    console.error('Error fetching shopping items:', error);
+    throw error;
   }
+};
 
-  static async togglePurchased(id: number): Promise<ShoppingItem> {
-    try {
-      const response = await fetch(`${this.BASE_URL}/shopping/${id}/toggle`, {
-        method: 'PATCH',
-      });
-
-      const result: ApiResponse<ShoppingItem> = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Failed to toggle purchased status');
-      }
-
-      return result.data!;
-    } catch (error) {
-      console.error('Error toggling purchased status:', error);
-      throw error;
-    }
+export const togglePurchased = async (id: number): Promise<ShoppingItem> => {
+  try {
+    return await apiClient.patch<ShoppingItem>(ENDPOINTS.TOGGLE(id));
+  } catch (error) {
+    console.error('Error toggling purchased status:', error);
+    throw error;
   }
-}
+};
+
+export const deleteItem = async (id: number): Promise<void> => {
+  try {
+    return await apiClient.delete<void>(ENDPOINTS.ITEM(id));
+  } catch (error) {
+    console.error('Error deleting shopping item:', error);
+    throw error;
+  }
+};
+
+export const updateItem = async (id: number, updates: UpdateShoppingItem): Promise<ShoppingItem> => {
+  try {
+    return await apiClient.put<ShoppingItem>(ENDPOINTS.ITEM(id), updates);
+  } catch (error) {
+    console.error('Error updating shopping item:', error);
+    throw error;
+  }
+};
+// Export d'un objet pour une API plus claire
+export const shoppingItemApi = {
+  getAllItems,
+  togglePurchased,
+  deleteItem,
+  updateItem,
+} as const;
+
