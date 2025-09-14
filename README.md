@@ -5,8 +5,7 @@
 ```
 shopizee/
 ├── server/          # Backend TypeScript avec Fastify
-├── client/          # Frontend TypeScript avec React
-└── docs/           # Documentation
+└── client/          # Frontend TypeScript avec React
 ```
 
 ---
