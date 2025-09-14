@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
 import { ShoppingItem, UpdateShoppingItem } from '../services/shopping-item.service';
+import { useEditForm } from '../hooks/use-edit-form';
 
 interface EditItemModalProps {
   item: ShoppingItem | null;
@@ -9,45 +9,14 @@ interface EditItemModalProps {
 }
 
 export const EditItemModal = ({ item, isOpen, onClose, onSave }: EditItemModalProps) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    quantity: 1,
-    unit: ''
-  });
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (item) {
-      setFormData({
-        name: item.name,
-        quantity: item.quantity,
-        unit: item.unit
-      });
-    }
-  }, [item]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!item) return;
-
-    setIsLoading(true);
-    try {
-      await onSave(item.id, formData);
-      onClose();
-    } catch (error) {
-      console.error('Failed to update item:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'quantity' ? parseInt(value) || 1 : value
-    }));
-  };
+  const {
+    formData,
+    isLoading,
+    error,
+    handleSubmit,
+    handleChange,
+    handleClose
+  } = useEditForm({ item, onSave, onClose });
 
   if (!isOpen || !item) return null;
 
@@ -56,6 +25,12 @@ export const EditItemModal = ({ item, isOpen, onClose, onSave }: EditItemModalPr
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
         <div className="p-6">
           <h2 className="text-xl font-semibold text-slate-800 mb-4">Modifier l'article</h2>
+          
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -105,12 +80,12 @@ export const EditItemModal = ({ item, isOpen, onClose, onSave }: EditItemModalPr
                   <option value="">Sélectionner</option>
                   <option value="kg">kg</option>
                   <option value="g">g</option>
-                  <option value="L">L</option>
+                  <option value="l">l</option>
                   <option value="ml">ml</option>
                   <option value="pièce(s)">pièce(s)</option>
-                  <option value="paquet">paquet</option>
-                  <option value="bouteille">bouteille</option>
-                  <option value="boîte">boîte</option>
+                  <option value="paquet(s)">paquet(s)</option>
+                  <option value="bouteille(s)">bouteille(s)</option>
+                  <option value="boîte(s)">boîte(s)</option>
                 </select>
               </div>
             </div>
@@ -118,7 +93,7 @@ export const EditItemModal = ({ item, isOpen, onClose, onSave }: EditItemModalPr
             <div className="flex space-x-3 pt-4">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 className="flex-1 px-4 py-2 text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
                 disabled={isLoading}
               >

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAllItems, togglePurchased, deleteItem, updateItem, ShoppingItem, UpdateShoppingItem } from '../services/shopping-item.service';
+import { getAllItems, createItem, togglePurchased, deleteItem, updateItem, ShoppingItem, CreateShoppingItem, UpdateShoppingItem } from '../services/shopping-item.service';
 
 export const useShoppingItems = () => {
   const [items, setItems] = useState<ShoppingItem[]>([]);
@@ -46,6 +46,19 @@ export const useShoppingItems = () => {
     }
   };
 
+  const createNewItem = async (itemData: CreateShoppingItem) => {
+    try {
+      setError(null);
+      const newItem = await createItem(itemData);
+      setItems(prevItems => [newItem, ...prevItems]);
+      return newItem;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create item';
+      setError(errorMessage);
+      throw err;
+    }
+  };
+
   const updateItemById = async (id: number, updates: UpdateShoppingItem) => {
     try {
       setError(null);
@@ -70,6 +83,7 @@ export const useShoppingItems = () => {
     loading,
     error,
     loadItems,
+    createItem: createNewItem,
     togglePurchased: togglePurchasedItem,
     deleteItem: deleteItemById,
     updateItem: updateItemById

@@ -1,4 +1,4 @@
-import { useShoppingItems, useEditModal } from '../hooks';
+import { useShoppingItems, useEditModal, useAddModal } from '../hooks';
 import { useItemActions } from '../hooks/use-item-actions';
 import { useItemFiltering } from '../hooks/use-item-filtering';
 import { LoadingState } from '../components/loading-state';
@@ -7,13 +7,20 @@ import { EmptyState } from '../components/empty-state';
 import { ShoppingListHeader } from '../components/shopping-list-header';
 import { ShoppingItemCard } from '../components/shopping-item-card';
 import { EditItemModal } from '../components/edit-item-modal';
+import { AddItemModal } from '../components/add-item-modal';
 
 export const ShoppingListPage = () => {
-  const { items, loading, error, togglePurchased, deleteItem, updateItem } = useShoppingItems();
+  const { items, loading, error, createItem, togglePurchased, deleteItem, updateItem } = useShoppingItems();
   
   const { purchasedItems, remainingItems } = useItemFiltering(items);
   
   const { editingItem, isOpen: isEditModalOpen, openModal, closeModal, handleSave } = useEditModal(updateItem);
+  
+  const { isOpen: isAddModalOpen, openModal: openAddModal, closeModal: closeAddModal, handleSave: handleAddSave } = useAddModal({
+    onCreateItem: async (itemData) => {
+      await createItem(itemData);
+    }
+  });
   
   const { handleTogglePurchased, handleDelete, handleEdit } = useItemActions({
     onTogglePurchased: togglePurchased,
@@ -33,7 +40,8 @@ export const ShoppingListPage = () => {
     <div className="h-screen bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
       <ShoppingListHeader 
         remainingCount={remainingItems.length} 
-        purchasedCount={purchasedItems.length} 
+        purchasedCount={purchasedItems.length}
+        onAddItem={openAddModal}
       />
 
       {/* Content with scroll */}
@@ -89,6 +97,13 @@ export const ShoppingListPage = () => {
         isOpen={isEditModalOpen}
         onClose={closeModal}
         onSave={handleSave}
+      />
+
+      {/* Add Modal */}
+      <AddItemModal
+        isOpen={isAddModalOpen}
+        onClose={closeAddModal}
+        onSave={handleAddSave}
       />
     </div>
   );

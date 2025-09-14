@@ -61,6 +61,15 @@ export const deleteItem = async (id: number): Promise<void> => {
   }
 };
 
+export const createItem = async (itemData: CreateShoppingItem): Promise<ShoppingItem> => {
+  try {
+    return await apiClient.post<ShoppingItem>(ENDPOINTS.SHOPPING, itemData);
+  } catch (error) {
+    console.error('Error creating shopping item:', error);
+    throw error;
+  }
+};
+
 export const updateItem = async (id: number, updates: UpdateShoppingItem): Promise<ShoppingItem> => {
   try {
     return await apiClient.put<ShoppingItem>(ENDPOINTS.ITEM(id), updates);
@@ -72,6 +81,7 @@ export const updateItem = async (id: number, updates: UpdateShoppingItem): Promi
 // Export d'un objet pour une API plus claire
 export const shoppingItemApi = {
   getAllItems,
+  createItem,
   togglePurchased,
   deleteItem,
   updateItem,
