@@ -1,14 +1,12 @@
 interface ShoppingListHeaderProps {
-  remainingCount: number;
-  purchasedCount: number;
   onAddItem: () => void;
 }
 
-export const ShoppingListHeader = ({ remainingCount, purchasedCount, onAddItem }: ShoppingListHeaderProps) => {
+export const ShoppingListHeader = ({ onAddItem }: ShoppingListHeaderProps) => {
   return (
     <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-10">
       <div className="px-6 py-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between  container mx-auto px-6">
           <h1 className="text-2xl font-bold text-slate-800">Shopizee</h1>
           <button
             onClick={onAddItem}
@@ -19,11 +17,6 @@ export const ShoppingListHeader = ({ remainingCount, purchasedCount, onAddItem }
             </svg>
             Ajouter
           </button>
-        </div>
-        <div className="flex justify-center space-x-6 mt-2 text-sm text-slate-600">
-          <span>{remainingCount} restants</span>
-          <span>•</span>
-          <span>{purchasedCount} achetés</span>
         </div>
       </div>
     </div>

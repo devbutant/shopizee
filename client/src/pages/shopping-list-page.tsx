@@ -39,10 +39,14 @@ export const ShoppingListPage = () => {
   return (
     <div className="h-screen bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
       <ShoppingListHeader 
-        remainingCount={remainingItems.length} 
-        purchasedCount={purchasedItems.length}
         onAddItem={openAddModal}
       />
+
+    <div className="text-center text-sm text-slate-600 mt-4">
+      <span>{remainingItems.length} restants</span>
+      <span>•</span>
+      <span>{purchasedItems.length} achetés</span>
+    </div>
 
       {/* Content with scroll */}
       <div className="h-[calc(100vh-80px)] overflow-y-auto container mx-auto">
