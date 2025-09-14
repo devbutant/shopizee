@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import cors from '@fastify/cors';
 import { config } from './utils/config';
 import { registerRoutes } from './routes';
 import { databaseService } from './services/database.service';
@@ -10,6 +11,17 @@ const fastify = Fastify({
 
 async function start(): Promise<void> {
   try {
+    // CORS
+    await fastify.register(cors, {
+      origin: 
+        process.env['NODE_ENV'] === 'production' 
+        ? [process.env['PROD_APP_URL'] || 'http://localhost:5173'] // pas encore défini
+        : [process.env['DEV_APP_URL'] || 'http://localhost:5173'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: true,
+    });
+
     // Initialiser la base de données
     await databaseService.initialize();
 
@@ -23,28 +35,11 @@ async function start(): Promise<void> {
     await fastify.listen({ port: config.port, host: config.host });
     
     console.log(`🚀 Serveur démarré sur http://${config.host}:${config.port}`);
-  } catch (err) {
-    fastify.log.error(err);
+  } catch (error) {
+    console.error('Erreur lors du démarrage du serveur:', error);
     process.exit(1);
   }
 }
 
-// Gestionnaire pour l'arrêt propre du serveur
-process.on('SIGINT', async () => {
-  console.log('\n🛑 Arrêt du serveur...');
-  await databaseService.close();
-  await fastify.close();
-  process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-  console.log('\n🛑 Arrêt du serveur...');
-  await databaseService.close();
-  await fastify.close();
-  process.exit(0);
-});
-
-start().catch((err) => {
-  console.error('Erreur lors du démarrage:', err);
-  process.exit(1);
-});
+// Démarrer l'application
+start();
