@@ -1,5 +1,5 @@
 {
-  "name": "spotizee-api",
+  "name": "shopizee-api",
   "version": "1.0.0",
   "description": "Backend TypeScript avec Fastify",
   "main": "dist/index.js",
